@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<head>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #panel {
+           margin-top: 50px;
+           background-color: aquamarine; 
+           width: 500px;
+           height: 500px;
+           display: flex;
+           flex-direction: row;
+           flex-wrap: wrap;
+        }
+        .block {
+            background-color: coral;
+            border: 1px solid white;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hitBlock {
+            background-color: green;
+        }
+
+        #options {
+            font-size: 50px;
+        }
+    </style>
+</head>
+
+<body>
+	选择一个组合，绿色格子就是对应的迷宫路线。鼠标点击选择框后，键盘上下键可以快速切换
+    <select id="options" name="options" οnchange="handleChange();">
+
+    </select>
+
+
+    <div id="panel">
+
+    </div>
+
+
+    <script type="text/javascript">
+
+        let letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
+        let numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
+        function getIdByLetter(letter){
+            letter = letter + ""
+            for (let index = 0; index < letters.length; index++) {
+                const element = letters[index];
+                if(letter == element){
+                    return index + 1
+                }
+            }
+            return -1
+        }
+        function getIdByNumber(num){
+            return parseInt(num) * 10
+        }
+
+        function hit(id){
+            try {
+                document.getElementById('block-'+id).className = "block hitBlock";
+            } catch (error) {
+                console.log(id+"不存在")
+            }
+        }
+
+        function colour(value){
+            let elements = value.split("")
+            if(/^[A-Z]$/.test(elements[0])){
+                let id = getIdByLetter(elements[0])
+                hit(id)
+                let n = parseInt(elements[1])
+                for (let index = 1; index <= n; index++) {
+                    hit(index * 10 + id)
+                }
+                let start = value.charCodeAt(0)
+                let end = value.charCodeAt(2)
+                if(start > end){
+                    let i = start - end
+                    let cur = n * 10 + id
+                    while(i > 0){
+                        cur -= 1
+                        i--
+                        hit(cur)
+                    }
+                    
+                    while(cur < 100){                        
+                        hit(cur)
+                        cur += 10
+                    }
+                }else{
+                    let i = end - start
+                    let cur = n * 10 + id
+                    while(i > 0){
+                        cur += 1
+                        i--
+                        hit(cur)
+                    }
+                    
+                    while(cur < 100){
+                        hit(cur)
+                        cur += 10
+                    }
+                }
+            }else{
+                let id = getIdByNumber(elements[0])
+                hit(id)
+                let i = getIdByLetter(elements[1])
+                for (let index = id; index <= id + i; index++) {
+                    hit(index)
+                }
+                let start = parseInt(elements[0])
+                let end = parseInt(elements[2])
+                if(start > end){
+                    let i2 = start - end
+                    let cur = id + i
+                    while(i2 > 0){
+                        cur -= 10
+                        i2--
+                        hit(cur)
+                    }
+
+                    let max = parseInt(cur / 10) * 10 + 10
+                    
+                    while(cur < max){                        
+                        hit(cur)
+                        cur += 1
+                    }
+                }else{
+                    let i2 = end - start
+                    let cur = id + i
+                    while(i2 > 0){
+                        cur += 10
+                        i2--
+                        hit(cur)
+                    }
+
+                    let max = parseInt(cur / 10) * 10 + 10
+                    
+                    while(cur < max){
+                        hit(cur)
+                        cur += 1
+                    }
+                }
+            }
+        }
+
+        let select = document.getElementById("options")
+        select.onchange = function(){
+            var obj = document.getElementById('options');
+            var index = obj.selectedIndex;
+            var value = obj.options[index].value;
+
+            for (const block of document.getElementsByClassName("block")) {
+                block.className="block"
+            }
+
+            colour(value)
+        }
+        select.options.length=0;
+        
+        for (let letter of letters) {
+            for (let number of numbers) {
+                for (let letter2 of letters) {
+                    if(letter2 == letter){
+                        continue
+                    }
+                    let value = letter+number+letter2
+                    select.options.add(new Option(value,value));
+                }
+            }
+        }
+
+        for (let number of numbers) {
+            for (let letter of letters) {
+                for (let number2 of numbers) {
+                    if(number2 == number){
+                        continue
+                    }
+                    let value = number+letter+number2
+                    select.options.add(new Option(value,value));
+                }
+            }
+        }
+
+
+        select.selectedIndex = 1;
+
+        let panel = document.getElementById("panel")
+        let lettersIndex = 0, numberIndex= 0
+
+
+        for (let row = 0; row < 10; row++) {
+            for (let col = 0; col < 10; col++) {
+                var div = document.createElement('div');
+                div.className = "block";
+                div.id = "block-"+(row*10+col)
+
+                if(row == 0 && col > 0){
+                   div.innerHTML = letters[lettersIndex]
+                   lettersIndex++
+                }
+                if(col == 0 && row > 0){
+                   div.innerHTML = numbers[numberIndex]
+                   numberIndex++
+                }
+
+                panel.appendChild(div);
+            }
+        }
+
+        colour(select.options[select.selectedIndex].value)
+
+    </script>
+</body>
+
+</html>
